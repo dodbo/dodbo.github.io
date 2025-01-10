@@ -113,13 +113,12 @@ public class RoomSearchServiceImpl implements RoomSearchService {
 
     @Override
     public List<Integer> getRoomForPractise(int studentsCount) {
-        List<Integer> ids = info.entrySet()
+        return info.entrySet()
                 .stream()
-                .filter(e -> Integer.parseInt(e.getValue()[1]) >= studentsCount)
-                .map(Map.Entry::getKey)
+                .filter(e -> Integer.parseInt(e.getValue()[1]) >= studentsCount
+                        && Arrays.stream(busy.get(e.getKey())).anyMatch(value -> value == 0))
+                .map(e -> Integer.parseInt(e.getValue()[0]))
                 .toList();
-
-        return ids;
     }
 
     @Override
