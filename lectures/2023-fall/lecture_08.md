@@ -33,24 +33,87 @@
 ![alt text](https://habrastorage.org/r/w1560/files/40a/eca/09a/40aeca09ac1c4cc7bdbd475a3c12fd95.png)
 
 ```java
-import java.util.ArrayList;
-import java.util.LinkedList;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Scanner;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
-class Temp {
-    public static void main(String[] args) {
-        // Vector - синхронизирован. Будем использовать ArrayList
-        // Stack - LIFO, но лучше использовать ArrayDeque
+public class RoomSearchServiceImpl implements RoomSearchService {
 
-        // ArrayList - список основан на массиве
-        ArrayList<String> ourList = new ArrayList<String>();
-        ourList.size();
-        ourList.add("");
-        ourList.remove(0);
-        ourList.toArray(new String[]{});
-        ourList.addAll(new ArrayList<>());
-        remmmmmmmm
+    HashMap<Integer, String[]> info = new HashMap<>();
+    HashMap<Integer, int[]> busy = new HashMap<>();
 
-        // LinkedList - связный
+
+    @Override
+    public void init(String fileName) {
+        RuntimeException runtimeException = new RuntimeException("error: cant initialize");
+        try {
+            File file = new File(fileName);
+            Scanner scanner = new Scanner(file);
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                String[] parts = line.split(";");
+
+                if (parts.length != 10) {
+                    throw runtimeException;
+                }
+
+                int id = Integer.parseInt(parts[0]);
+                info.put(id, Arrays.copyOfRange(parts, 1, 4));
+
+                int[] busyRooms = Arrays.stream(Arrays.copyOfRange(parts, 4, 10))
+                        .mapToInt(Integer::parseInt)
+                        .toArray();
+
+                busy.put(id, busyRooms);
+            }
+            scanner.close();
+        } catch (FileNotFoundException e) {
+            throw runtimeException;
+        }
+    }
+
+    @Override
+    public List<Integer> getFreeRooms(int lessonNumber) {
+        return info.entrySet()
+                .stream()
+                .filter(e -> busy.get(e.getKey())[lessonNumber - 1] == 0)
+                .map(e -> Integer.parseInt(e.getValue()[0]))
+                .toList();
+    }
+
+    @Override
+    public List<Integer> getRoomForPractise(int studentsCount) {
+        return info.entrySet()
+                .stream()
+                .filter(e -> Integer.parseInt(e.getValue()[1]) >= studentsCount
+                        && Arrays.stream(busy.get(e.getKey())).anyMatch(value -> value == 0))
+                .map(e -> Integer.parseInt(e.getValue()[0]))
+                .toList();
+    }
+
+    @Override
+    public Optional<Integer> getMostUnusedRoom() {
+        HashMap<Integer, Integer> countBusy = new HashMap<>();
+
+        for (Integer id : info.keySet()) {
+            int count = 0;
+            for (int num : busy.get(id)) {
+                count += num;
+            }
+            countBusy.put(id, count);
+        }
+
+        return countBusy.entrySet()
+                .stream()
+                .min(Map.Entry.comparingByValue())
+                .map(e -> Integer.parseInt(info.get(e.getKey())[0]));
+    }
+}
 ```
 
 ### List
