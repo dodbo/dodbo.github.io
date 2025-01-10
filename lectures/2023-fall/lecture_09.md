@@ -98,15 +98,9 @@ public class RoomSearchServiceImpl implements RoomSearchService {
 
     @Override
     public List<Integer> getFreeRooms(int lessonNumber) {
-        List<Integer> ids = busy.entrySet()
-                .stream()
-                .filter(n -> n.getValue()[lessonNumber] == 0)
-                .map(Map.Entry::getKey)
-                .toList();
-
         return info.entrySet()
                 .stream()
-                .filter( e -> ids.contains(e.getKey()))
+                .filter(e -> busy.get(e.getKey())[lessonNumber - 1] == 0)
                 .map(e -> Integer.parseInt(e.getValue()[0]))
                 .toList();
     }
@@ -125,9 +119,9 @@ public class RoomSearchServiceImpl implements RoomSearchService {
     public Optional<Integer> getMostUnusedRoom() {
         HashMap<Integer, Integer> countBusy = new HashMap<>();
 
-        for (Integer id: info.keySet()) {
+        for (Integer id : info.keySet()) {
             int count = 0;
-            for (int num: busy.get(id)) {
+            for (int num : busy.get(id)) {
                 count += num;
             }
             countBusy.put(id, count);
@@ -139,7 +133,6 @@ public class RoomSearchServiceImpl implements RoomSearchService {
                 .map(e -> Integer.parseInt(info.get(e.getKey())[0]));
     }
 }
-
 ```
 
 ###  Работа с файлами и каталогами
