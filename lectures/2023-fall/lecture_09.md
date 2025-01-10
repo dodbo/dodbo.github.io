@@ -52,50 +52,90 @@ try {
 
 Еще пример:
 ```java
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.*;
 
-import java.io.IOException;
-import java.util.Scanner;
-import java.util.stream.Collectors;
+public class RoomSearchServiceImpl implements RoomSearchService {
 
-public class ExceptionsExample {
-public static void main(String[] args) {
+    HashMap<Integer, String[]> info = new HashMap<>();
+    HashMap<Integer, int[]> busy = new HashMap<>();
 
-        // Как бросить исключение:
-        throw new RuntimeException("Всегда бросаю исключение, потому что могу");
 
-        // Что делать, если после того, как бросили исключение, мы хотим продолжить работу программы?
-        // Например, если мы завели какие-нибудь данные и не успели их сохранить? Или, например, мы хотим
-        // получив исключения как-то осознанно об этом сообщить пользователю?
-        // Для этого заиспользуем блок try-catch-finally
-        
+    @Override
+    public void init(String fileName) {
+        RuntimeException runtimeException = new RuntimeException("error: cant initialize");
         try {
-            // В блок try помещаем код, который может бросить исключение
-            // Часто таким кодом может быть запрос к внешним ресурсам - файловой системе, БД, интернету
-            readFile();
-            // В readFile мы получаем исключение. Значит выполнение программы будет приостановлено и
-            // все, что мы напишем в блоке try ниже не будет выполнено
-            
-        } catch (IOException e) {
-            // Здесь мы можем обработать исключение - например распечатать какие-нибудь данные из него 
-            // (например e.message)
-        } catch (Error e) {
-            System.out.println("error catched");
-        }
-        
-        
-        Scanner in = new Scanner(System.in);
-        var a = in.tokens().map(String::toLowerCase).collect(Collectors.groupingBy(x -> x, Collectors.counting()));
+            File file = new File(fileName);
+            Scanner scanner = new Scanner(file);
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                String[] parts = line.split(";");
 
+                if (parts.length != 10) {
+                    throw runtimeException;
+                }
+
+                int id = Integer.parseInt(parts[0]);
+                info.put(id, Arrays.copyOfRange(parts, 1, 4));
+
+                int[] busyRooms = Arrays.stream(Arrays.copyOfRange(parts, 4, 10))
+                        .mapToInt(Integer::parseInt)
+                        .toArray();
+
+                busy.put(id, busyRooms);
+            }
+            scanner.close();
+        } catch (FileNotFoundException e) {
+            throw runtimeException;
+        }
     }
 
-    
-    // Здесь мы должны указать в заголовке функции 'throws IOException',
-    // тк IOException не является RuntimeException и значит мы должны явно указывать, что метод 
-    // может бросить соответствующее исключение
-    private static void readFile() throws IOException {
-        throw new IOException();
+    @Override
+    public List<Integer> getFreeRooms(int lessonNumber) {
+        List<Integer> ids = busy.entrySet()
+                .stream()
+                .filter(n -> n.getValue()[lessonNumber] == 0)
+                .map(Map.Entry::getKey)
+                .toList();
+
+        return info.entrySet()
+                .stream()
+                .filter( e -> ids.contains(e.getKey()))
+                .map(e -> Integer.parseInt(e.getValue()[0]))
+                .toList();
+    }
+
+    @Override
+    public List<Integer> getRoomForPractise(int studentsCount) {
+        List<Integer> ids = info.entrySet()
+                .stream()
+                .filter(e -> Integer.parseInt(e.getValue()[1]) >= studentsCount)
+                .map(Map.Entry::getKey)
+                .toList();
+
+        return ids;
+    }
+
+    @Override
+    public Optional<Integer> getMostUnusedRoom() {
+        HashMap<Integer, Integer> countBusy = new HashMap<>();
+
+        for (Integer id: info.keySet()) {
+            int count = 0;
+            for (int num: busy.get(id)) {
+                count += num;
+            }
+            countBusy.put(id, count);
+        }
+
+        return countBusy.entrySet()
+                .stream()
+                .min(Map.Entry.comparingByValue())
+                .map(e -> Integer.parseInt(info.get(e.getKey())[0]));
     }
 }
+
 ```
 
 ###  Работа с файлами и каталогами
