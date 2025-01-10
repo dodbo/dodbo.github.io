@@ -33,33 +33,24 @@
 ![alt text](https://habrastorage.org/r/w1560/files/40a/eca/09a/40aeca09ac1c4cc7bdbd475a3c12fd95.png)
 
 ```java
-import java.util.HashMap;
-import java.util.Hashtable;
+import java.util.ArrayList;
+import java.util.LinkedList;
 
 class Temp {
     public static void main(String[] args) {
-        // Hashtable - хэш-таблица. Нельзя использовать null как value или key. 
-        // Все методы помечены synchronized - поэтому есть проблемы с производительностью
-        Hashtable<Integer, String> table = new Hashtable<>();
-        table.put(1, "hello");
-        String value = table.get(1); // hello
+        // Vector - синхронизирован. Будем использовать ArrayList
+        // Stack - LIFO, но лучше использовать ArrayDeque
 
-        // HashMap - альтернатива. Не синхронизирована. И можно использовать null
-        HashMap<Integer, String> map = new HashMap<>();
-        map.put(1, "good evening");
-        String str = map.get(1); // good evening
+        // ArrayList - список основан на массиве
+        ArrayList<String> ourList = new ArrayList<String>();
+        ourList.size();
+        ourList.add("");
+        ourList.remove(0);
+        ourList.toArray(new String[]{});
+        ourList.addAll(new ArrayList<>());
+        remmmmmmmm
 
-        // LinkedHashMap - упорядоченная в порядке добавления элементов.
-
-        // TreeMap - основана на красно-черных деревьях, тоже является упорядоченной. 
-        // Порядок можно задавать через Comparator
-
-        // WeakHashMap. Garbage Collector автоматически удалит элемент из коллекции 
-        // при следующей сборке мусора, если на ключ этого элемента нет жёстких ссылок.
-
-
-    }
-}
+        // LinkedList - связный
 ```
 
 ### List
